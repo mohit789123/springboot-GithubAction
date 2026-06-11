@@ -1,0 +1,68 @@
+name: deploy to AWS ECS
+on:
+    push:
+        branches: [master]
+env:
+    AWS_REGION: ap-south-1
+    ECR_REGISTRY: 648815272613.dkr.ecr.ap-south-1.amazonaws.com/springboot-action
+    ECS_SERVICE: springboot-action-service
+    ECS_CLUSTER: Github-Action
+    ECS_TASK_DEFINITION: task-defination-Action.json
+    CONTAINER_NAME: action-container
+
+jobs:
+    deploy:
+        name: Deploy
+        runs-on: ubuntu-latest
+        environment: production
+
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v1
+
+          - name: Set up JDK 17
+            uses: actions/setup-java@v3
+            with:
+             distribution: "temurin"
+             java-version: "17"
+
+          - name: Build with Maven
+            run: mvn clean install -DskipTests
+          - name: Configure AWS credentials
+            uses: aws-actions/configure-aws-credentials@v3
+            with:
+                 aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                 aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                 aws-region: ${{ env.AWS_REGION }}
+          - name: login to amazon ECR
+            id: login-ecr
+            uses: aws-actions/amazon-ecr-login@v3
+            with:
+                 mask-password: true
+
+          - name: build,tag and push image to ECR
+            id: build-image
+            env:
+             ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
+             IMAGE_TAG: ${{ github.sha }}
+            run: |
+                  docker build -t springboot-example .
+                   docker push $ECR_REGISTRY:latest
+                   echo " name=image::${ECR_REGISTRY}:latest" >> $GITHUB_OUTPUT
+          - name: Fill in the new task definition with the new image
+            id: task-def 
+            run: |
+
+             uses: aws-actions/amazon-ecs-deploy-task-definition@3
+             with:
+              task-definition: task-defination-Action.json
+              cotainer-name: action-container
+              image: ${{ steps.build-image.outputs.image }}
+
+          - name: Deploy Amazon ECS task definition
+            uses: aws-actions/amazon-ecs-deploy-task-definition@v3
+            with:
+              task-definition: ${{ steps.task-def.outputs.task-definition }}
+              service: ${{ env.ECS_SERVICE }}
+              cluster: ${{ env.ECS_CLUSTER }}
+              wait-for-service-stability: true
