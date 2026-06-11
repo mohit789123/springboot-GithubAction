@@ -54,7 +54,7 @@ jobs:
                     echo " name=image::${ECR_REGISTRY}:latest" >> $GITHUB_OUTPUT
           - name: Fill in the new task definition with the new image
             id: task-def 
-            uses: aws-actions/amazon-ecs-render-task-definition@v2
+            uses: aws-actions/amazon-ecs-render-task-definition@v1
             with:
               task-definition: task-defination-Action.json
               container-name: ${{ env.CONTAINER_NAME }}
