@@ -49,7 +49,6 @@ jobs:
               IMAGE_TAG: ${{ github.sha }}
             run: |
                     docker build -t springboot-example .
-                    docker tag springboot-example:latest $ECR_REGISTRY:latest
                     docker push $ECR_REGISTRY:latest
                     echo " name=image::${ECR_REGISTRY}:latest" >> $GITHUB_OUTPUT
           - name: Fill in the new task definition with the new image
