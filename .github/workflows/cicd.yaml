@@ -49,9 +49,9 @@ jobs:
               IMAGE_TAG: ${{ github.sha }}
             run: |
                     docker build -t springboot-example .
-                    docker tag springboot-example:latest $ECR_REGISTRY:latest
-                    docker push $ECR_REGISTRY:latest
-                    echo " name=image::${ECR_REGISTRY}:latest" >> $GITHUB_OUTPUT
+                    docker tag springboot-example:latest 648815272613.dkr.ecr.ap-south-1.amazonaws.com/springboot-action:latest
+                    docker push 648815272613.dkr.ecr.ap-south-1.amazonaws.com/springboot-action:latest
+                    echo " name=image::648815272613.dkr.ecr.ap-south-1.amazonaws.com/springboot-action:latest" >> $GITHUB_OUTPUT
           - name: Fill in the new task definition with the new image
             id: task-def 
             uses: aws-actions/amazon-ecs-render-task-definition@v1
